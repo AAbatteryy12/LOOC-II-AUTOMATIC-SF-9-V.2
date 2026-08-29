@@ -105,7 +105,7 @@
 .photo-help{font-size:11px;color:#64748b;line-height:1.45}
 .photo-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
 .photo-actions button{padding:7px 10px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-family:inherit;font-weight:700}
-.learner-thumb{width:38px;height:38px;border-radius:6px;object-fit:cover;border:1px solid #cbd5e1;vertical-align:middle;margin-right:7px}
+.learner-thumb{width:70px;height:70px;border-radius:6px;object-fit:contain;background:#fff;border:1px solid #cbd5e1;vertical-align:middle;margin-right:7px;display:block;margin-left:auto;margin-right:auto}
 
 .batch-note{color:#475569;margin-top:-6px}.batch-panel{scroll-margin-top:18px}.batch-toolbar{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.batch-toolbar h2{margin-bottom:4px}.batch-toolbar p,.batch-panel>p{font-size:12px;color:#64748b;margin:0 0 12px}.term-pills{display:flex;gap:6px;flex-shrink:0}.term-pills .term-btn{border:1px solid #173b73;background:#fff;color:#173b73;border-radius:7px;padding:8px 12px;font-weight:800;cursor:pointer;font-family:inherit}.term-pills .term-btn.active{background:#173b73;color:#fff}.batch-table-wrap{overflow:auto;border:1px solid #cbd5e1;border-radius:8px}.batch-table{width:100%;min-width:1250px;border-collapse:collapse;font-size:11px;background:#fff}.batch-table th,.batch-table td{border:1px solid #cbd5e1;padding:5px;text-align:center;vertical-align:middle}.batch-table th{background:#edf1f7;font-weight:800;line-height:1.08}.batch-table .sticky-name{position:sticky;left:0;z-index:3;background:#edf1f7;min-width:180px;text-align:left}.batch-table td.sticky-name{background:#fff;font-weight:700}.batch-grade-input{width:48px;padding:5px 2px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-family:inherit}.batch-comment-input{width:100%;min-width:220px;min-height:52px;border:1px solid #cbd5e1;border-radius:4px;padding:5px;font-family:inherit;resize:vertical}.batch-att-input{width:52px;padding:5px 2px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-family:inherit}.batch-mapeh{font-weight:800;background:#f8fafc}.batch-action{display:flex;gap:5px;align-items:center;justify-content:center}.batch-photo{width:34px;height:34px;border-radius:4px;object-fit:cover;border:1px solid #cbd5e1}.batch-status{font-size:10px;color:#64748b;margin-left:5px}.batch-table tr:hover td{background:#f8fbff}.batch-table tr:hover td.sticky-name{background:#f8fbff}@media(max-width:800px){.batch-toolbar{flex-direction:column}.term-pills{width:100%}.term-pills .term-btn{flex:1}.batch-table{min-width:1150px}}
 .rank-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}.rank-controls{min-width:180px}.rank-controls label{display:block;font-size:12px;font-weight:700;margin-bottom:4px}.rank-controls select{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:6px;font-family:inherit}.rank-table th{background:#edf1f7}.rank-table td:nth-child(1),.rank-table td:nth-child(5){font-weight:800;text-align:center}.rank-badge{display:inline-block;min-width:30px;padding:3px 8px;border-radius:999px;background:#edf1f7;font-weight:800}.rank-empty{padding:24px!important;text-align:center!important;color:#64748b}.rank-note{font-size:11px;color:#64748b;margin-top:10px}@media(max-width:700px){.rank-head{flex-direction:column;align-items:stretch}.rank-controls{width:100%}}
@@ -187,7 +187,7 @@
 </aside>
 <div class="main-content">
 <div class="panel" id="dashboard"><h2>SF9 Learners Data Platform — 2026</h2><p>Encode learner information, three-term grades, observed values, attendance and comments. Your records are securely saved to your Supabase account and follow you to any laptop or browser.</p>
-<div class="dashboard-strip"><div class="dashboard-card"><div class="num" id="dashTotal">0</div><div class="lbl">TOTAL LEARNERS</div></div><div class="dashboard-card"><div class="num" id="dashSections">0</div><div class="lbl">SECTIONS USED</div></div><div class="dashboard-card"><div class="num">3</div><div class="lbl">TERMS</div></div></div>
+<div class="dashboard-strip"><div class="dashboard-card"><div class="num" id="dashTotal">0</div><div class="lbl">TOTAL LEARNERS</div></div><div class="dashboard-card"><div class="num" id="dashMale">0</div><div class="lbl">MALE LEARNERS</div></div><div class="dashboard-card"><div class="num" id="dashFemale">0</div><div class="lbl">FEMALE LEARNERS</div></div><div class="dashboard-card"><div class="num" id="dashSections">0</div><div class="lbl">SECTIONS USED</div></div><div class="dashboard-card"><div class="num">3</div><div class="lbl">TERMS</div></div></div>
 </div>
 <div class="panel card-info-panel" id="cardInfoPanel">
 <h2>Card Information</h2>
@@ -432,7 +432,7 @@ function renderLearners(){
   });
   learnerRows.innerHTML=rows.map((x,i)=>`<tr><td>${i+1}</td><td>${x.photo?`<img class="learner-thumb" src="${x.photo}" alt="">`:''}</td><td><span class="summary-name">${esc(x.name)}</span></td><td>${esc(x.lrn)}</td><td>${esc(x.grade)}</td><td>${esc(x.section)}</td><td class="batch-action"><button onclick="selectLearner('${x.id}')">Edit / Select</button> <button class="gray" onclick="editLearnerInfo('${x.id}')">Edit Info</button> <button onclick="printSelectedLearner('${x.id}')">Print</button> <button class="red" onclick="deleteLearner('${x.id}')">Delete</button></td></tr>`).join('');
   fitSummaryNames();
-  const dt=document.getElementById('dashTotal'), ds=document.getElementById('dashSections'); if(dt)dt.textContent=learners.length; if(ds)ds.textContent=new Set(learners.map(x=>x.section).filter(Boolean)).size;
+  const dt=document.getElementById('dashTotal'), dm=document.getElementById('dashMale'), df=document.getElementById('dashFemale'), ds=document.getElementById('dashSections'); if(dt)dt.textContent=learners.length; if(dm)dm.textContent=learners.filter(x=>String(x.sex||'').toLowerCase()==='male').length; if(df)df.textContent=learners.filter(x=>String(x.sex||'').toLowerCase()==='female').length; if(ds)ds.textContent=new Set(learners.map(x=>x.section).filter(Boolean)).size;
   renderBatchTables();
 }
 
@@ -672,7 +672,7 @@ function printSF9(){
             </div>
           </div>
           <div class="identity">
-            <b>Name:</b> <span class="uline name-line">${esc(x.name)}</span>
+            <b>Name:</b> <span class="uline name-line"><span class="print-name-text">${esc(x.name)}</span></span>
             &nbsp; <b>Age:</b> <span class="uline age-line">${esc(x.age)}</span>
             &nbsp; <b>Sex:</b> <span class="uline sex-line">${esc(x.sex)}</span><br>
             <b>LRN:</b> <span class="uline lrn-line">${esc(x.lrn)}</span>
@@ -786,12 +786,25 @@ function printSF9(){
       .page{display:block!important;margin:0!important;padding:0!important;width:283mm!important;height:196mm!important;overflow:hidden!important;}
       .card{margin:0!important;box-shadow:none!important;}
       .header-logo{width:22mm!important;height:22mm!important;flex-basis:22mm!important;object-fit:contain!important;}
+      .name-line{white-space:nowrap!important;overflow:hidden!important;}
+      .print-name-text{display:inline-block!important;white-space:nowrap!important;font-size:9pt;line-height:1!important;transform-origin:left center;}
       @page{size:A4 landscape;margin:7mm;}
     </style></head><body>${page}
 
 </body></html>`);
     popup.document.close();
-    setTimeout(()=>{popup.focus();popup.print();},500);
+    setTimeout(()=>{
+      const nameEl=popup.document.querySelector('.print-name-text');
+      const lineEl=popup.document.querySelector('.name-line');
+      if(nameEl && lineEl){
+        nameEl.style.fontSize='9pt';
+        const maxSize=9, minSize=5.5, step=.25;
+        while(nameEl.scrollWidth>lineEl.clientWidth && parseFloat(nameEl.style.fontSize)>minSize){
+          nameEl.style.fontSize=(parseFloat(nameEl.style.fontSize)-step)+'pt';
+        }
+      }
+      popup.focus();popup.print();
+    },700);
   }else{
     document.body.classList.add('printing-sf9');
     setTimeout(()=>window.print(),150);
