@@ -219,7 +219,7 @@
 <div class="field"><label>LRN</label><input id="lrn" maxlength="12"></div>
 <div class="field wide"><label>Name (Last Name, First Name, Middle Name)</label><input id="name"></div>
 <div class="field"><label>Sex</label><select id="sex"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
-<div class="field"><label>Birthday</label><input id="birthday" type="date"></div>
+<div class="field"><label>Birthday</label><input id="birthday" type="text" inputmode="numeric" placeholder="mm/dd/yyyy"></div>
 <div class="field"><label>Age</label><input id="age" type="number"></div>
 </div><div class="buttons"><button id="addLearnerBtn" onclick="addLearner()">Save Learner</button><button class="gray" onclick="clearLearnerForm()">Clear</button><button type="button" onclick="exportAllDataToExcel()">Export All Data to Excel</button></div></div>
 <div class="panel batch-panel" id="editLearnersPanel"><div class="batch-toolbar"><div><h2>Edit Students Info</h2><p>Edit learner information in columns, similar to the Grades entry table.</p></div></div><div class="batch-table-wrap"><table class="batch-table"><thead><tr><th class="sticky-name">Name of Learner</th><th>LRN</th><th>Sex</th><th>Birthday</th><th>Age</th><th>Grade</th><th>School Year</th></tr></thead><tbody id="batchLearnerInfoRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchLearnerInfo()">Save All Student Info</button></div></div>
@@ -227,7 +227,7 @@
 <div class="panel" id="rankPanel"><div class="rank-head"><div><h2>Learner Ranking</h2><p class="batch-note">Rank learners by their completed average for a selected term or the overall final average.</p></div><div class="rank-controls"><label for="rankPeriod">Ranking Period</label><select id="rankPeriod" onchange="renderRankTable()"><option value="t1">Term 1</option><option value="t2">Term 2</option><option value="t3">Term 3</option><option value="overall">Overall</option></select></div></div><div class="tablewrap"><table class="data-table rank-table"><thead><tr><th>Rank</th><th>Name of Learner</th><th>Grade</th><th>Section</th><th>Average</th><th>Status</th></tr></thead><tbody id="rankRows"></tbody></table></div></div>
 <div class="panel batch-panel" id="batchGradePanel"><div class="batch-toolbar"><div><h2 id="batchGradeTitle">TERM 1 — Grades</h2><p>Encode the selected term for all learners. Changes are saved together with the class records.</p></div><div class="term-pills"><button class="term-btn active" onclick="showBatchTerm(1)">TERM 1</button><button class="term-btn" onclick="showBatchTerm(2)">TERM 2</button><button class="term-btn" onclick="showBatchTerm(3)">TERM 3</button></div></div><div class="batch-table-wrap"><table class="batch-table"><thead><tr><th class="sticky-name">Name of Learners</th><th>Filipino</th><th>English</th><th>Mathematics</th><th>Science</th><th>Araling<br>Panlipunan (AP)</th><th>GMRC/Values<br>Education</th><th>EPP / TLE</th><th>MAPEH</th><th>Music and<br>Arts</th><th>Physical Education<br>and Health</th></tr></thead><tbody id="batchGradeRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchGrades()">Save All Grades</button><button class="gray" onclick="selectFirstLearnerForPrint()">Select First Learner</button></div></div>
 <div class="panel batch-panel" id="batchCommentsPanel"><h2>TEACHER'S COMMENTS / REMARKS</h2><p>Encode comments for all learners in one table, with one column for each term.</p><div class="batch-table-wrap"><table class="batch-table comments-batch"><thead><tr><th class="sticky-name">LEARNERS' NAME</th><th>TERM 1</th><th>TERM 2</th><th>TERM 3</th></tr></thead><tbody id="batchCommentRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchComments()">Save All Comments</button></div></div>
-<div class="panel batch-panel" id="batchAttendancePanel"><h2>ATTENDANCE</h2><p>Encode the number of school days for each month first. These values are automatically applied to the printed SF9 attendance record.</p><div class="batch-table-wrap" style="margin-bottom:12px"><table class="batch-table attendance-batch"><thead><tr><th class="sticky-name">NUMBER OF SCHOOL DAYS</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th></tr></thead><tbody><tr><td class="sticky-name">School Days</td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Jun"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Jul"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Aug"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Sep"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Oct"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Nov"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Dec"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Jan"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Feb"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Mar"></td><td><input class="batch-schoolday-input" type="number" min="0" data-month="Apr"></td></tr></tbody></table></div><div class="buttons" style="margin-top:0"><button onclick="saveSchoolDays()">Save School Days</button></div><div class="batch-table-wrap"><table class="batch-table attendance-batch"><thead><tr><th class="sticky-name">LEARNERS' NAME</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th></tr></thead><tbody id="batchAttendanceRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchAttendance()">Save All Attendance</button></div></div>
+<div class="panel batch-panel" id="batchAttendancePanel"><h2>ATTENDANCE</h2><p>Encode the number of school days for each month first. These values are automatically applied to the printed SF9 attendance record.</p><div class="batch-table-wrap" style="margin-bottom:12px"><table class="batch-table attendance-batch"><thead><tr><th class="sticky-name">NUMBER OF SCHOOL DAYS</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th></tr></thead><tbody><tr><td class="sticky-name">School Days</td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Jun" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Jul" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Aug" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Sep" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Oct" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Nov" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Dec" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Jan" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Feb" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Mar" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td><td><input class="batch-schoolday-input" type="text" inputmode="numeric" pattern="[0-9]*" data-month="Apr" oninput="schoolDaysByMonth[this.dataset.month]=this.value.replace(/[^0-9]/g,\'\')"></td></tr></tbody></table></div><div class="buttons" style="margin-top:0"><button onclick="saveSchoolDays()">Save School Days</button></div><div class="batch-table-wrap"><table class="batch-table attendance-batch"><thead><tr><th class="sticky-name">LEARNERS' NAME</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th></tr></thead><tbody id="batchAttendanceRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchAttendance()">Save All Attendance</button></div></div>
 <div class="panel" id="editor" style="display:none"><h2 id="editorTitle"></h2><h3>Report on Learning Progress and Achievement</h3><div class="tablewrap"><table class="data-table"><thead><tr><th>Learning Area</th><th>Term 1</th><th>Term 2</th><th>Term 3</th><th>Final Rating</th><th>Remarks</th></tr></thead><tbody id="gradeRows"></tbody></table></div>
 <h3 id="attendanceSection" style="margin-top:16px">Attendance</h3><div class="tablewrap"><table class="data-table"><thead><tr><th></th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Total</th></tr></thead><tbody id="attendanceRows"></tbody></table></div>
 <h3 id="commentsSection" style="margin-top:16px">Teacher's Comments/Remarks</h3><div class="grid"><div class="field wide"><label>1st Term</label><textarea id="comment1"></textarea></div><div class="field wide"><label>2nd Term</label><textarea id="comment2"></textarea></div><div class="field wide"><label>3rd Term</label><textarea id="comment3"></textarea></div></div>
@@ -287,7 +287,7 @@ function makeId(){return Date.now().toString(36)+Math.random().toString(36).slic
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function addLearner(){
   const val=id=>document.getElementById(id)?.value?.trim()||'';
-  const data={schoolYear:val('schoolYear'),grade:val('grade'),adviser:cardInfo.adviser,schoolHead:cardInfo.principal,lrn:val('lrn'),name:val('name'),sex:val('sex'),birthday:val('birthday'),age:val('age'),section:cardInfo.section,photo:pendingLearnerPhoto||''};
+  const data={schoolYear:val('schoolYear'),grade:val('grade'),adviser:cardInfo.adviser,schoolHead:cardInfo.principal,lrn:val('lrn'),name:val('name'),sex:val('sex'),birthday:birthdayToISO(val('birthday')),age:val('age'),section:cardInfo.section,photo:pendingLearnerPhoto||''};
   if(!data.name||!data.lrn){alert('Please enter learner name and LRN.');return}
   if(editingLearnerId){
     const x=learners.find(v=>v.id===editingLearnerId);
@@ -310,7 +310,7 @@ function editLearnerInfo(i){
   document.getElementById('lrn').value=x.lrn||'';
   document.getElementById('name').value=x.name||'';
   document.getElementById('sex').value=x.sex||'';
-  document.getElementById('birthday').value=x.birthday||'';
+  document.getElementById('birthday').value=formatBirthdayDisplay(x.birthday);
   document.getElementById('age').value=x.age||'';
   pendingLearnerPhoto=x.photo||'';
   showLearnerPhoto(pendingLearnerPhoto);
@@ -465,13 +465,34 @@ function showBatchTerm(term){localStorage.setItem('sf9BatchTerm',term);const tit
 function batchGradeChanged(el){const id=el.dataset.learner,term=el.dataset.term,subject=decodeURIComponent(el.dataset.subject);const x=learners.find(v=>v.id===id);if(!x)return;normalizeLearner(x);x.grades[subject]=x.grades[subject]||{};x.grades[subject]['t'+term]=Number(el.value)||'';if(subject==='Music and Arts'||subject==='Physical Education and Health'){const m=x.grades['Music and Arts']||{},p=x.grades['Physical Education and Health']||{};x.grades.MAPEH=x.grades.MAPEH||{};x.grades.MAPEH['t'+term]=componentAverage(m['t'+term],p['t'+term]);const cell=document.getElementById('bm_'+id+'_'+term);if(cell)cell.textContent=x.grades.MAPEH['t'+term]||'';}persist();}
 function saveBatchGrades(){normalizeAllLearners();learners.forEach(x=>{normalizeLearner(x);x.grades.MAPEH=x.grades.MAPEH||{};[1,2,3].forEach(t=>{const m=x.grades['Music and Arts']||{},p=x.grades['Physical Education and Health']||{};x.grades.MAPEH['t'+t]=componentAverage(m['t'+t],p['t'+t]);});});persist();renderBatchTables();renderLearnersOnly();alert('All term grades saved successfully.')}
 function saveBatchComments(){document.querySelectorAll('.batch-comment-input').forEach(el=>{const x=learners.find(v=>v.id===el.dataset.learner);if(x){normalizeLearner(x);x.comments[Number(el.dataset.comment)]=el.value;}});persist();alert('All teacher comments saved successfully.')}
+function sortLearnersMaleFemaleAlphabetical(list){
+  return [...list].sort((a,b)=>{
+    const rank=v=>{const s=String(v||'').trim().toLowerCase();return s==='male'?0:s==='female'?1:2};
+    const ra=rank(a.sex), rb=rank(b.sex);
+    if(ra!==rb)return ra-rb;
+    return String(a.name||'').localeCompare(String(b.name||''),undefined,{sensitivity:'base'});
+  });
+}
+function formatBirthdayDisplay(v){
+  const s=String(v||'').trim();
+  if(!s)return '';
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m?m[2]+'/'+m[3]+'/'+m[1]:s;
+}
+function birthdayToISO(v){
+  const s=String(v||'').trim();
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return `${m[3]}-${String(m[1]).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
+  return s;
+}
 function renderBatchLearnerInfo(){
   const el=document.getElementById('batchLearnerInfoRows');
   if(!el)return;
-  el.innerHTML=learners.map((x,i)=>`<tr><td class="sticky-name"><input class="batch-info-input" data-field="name" data-learner="${x.id}" value="${esc(x.name)}"></td><td><input class="batch-info-input" data-field="lrn" data-learner="${x.id}" value="${esc(x.lrn)}" maxlength="12"></td><td><select class="batch-info-input" data-field="sex" data-learner="${x.id}"><option value="">Select</option><option value="Male" ${x.sex==='Male'?'selected':''}>Male</option><option value="Female" ${x.sex==='Female'?'selected':''}>Female</option></select></td><td><input class="batch-info-input" type="date" data-field="birthday" data-learner="${x.id}" value="${esc(x.birthday)}"></td><td><input class="batch-info-input" type="number" data-field="age" data-learner="${x.id}" value="${esc(x.age)}"></td><td><input class="batch-info-input" data-field="grade" data-learner="${x.id}" value="${esc(x.grade)}"></td><td><input class="batch-info-input" data-field="schoolYear" data-learner="${x.id}" value="${esc(x.schoolYear)}"></td></tr>`).join('');
+  const ordered=sortLearnersMaleFemaleAlphabetical(learners);
+  el.innerHTML=ordered.map((x,i)=>`<tr><td class="sticky-name"><input class="batch-info-input" data-field="name" data-learner="${x.id}" value="${esc(x.name)}"></td><td><input class="batch-info-input" data-field="lrn" data-learner="${x.id}" value="${esc(x.lrn)}" maxlength="12"></td><td><select class="batch-info-input" data-field="sex" data-learner="${x.id}"><option value="">Select</option><option value="Male" ${x.sex==='Male'?'selected':''}>Male</option><option value="Female" ${x.sex==='Female'?'selected':''}>Female</option></select></td><td><input class="batch-info-input" type="text" inputmode="numeric" placeholder="mm/dd/yyyy" data-field="birthday" data-learner="${x.id}" value="${esc(formatBirthdayDisplay(x.birthday))}"></td><td><input class="batch-info-input" type="number" data-field="age" data-learner="${x.id}" value="${esc(x.age)}"></td><td><input class="batch-info-input" data-field="grade" data-learner="${x.id}" value="${esc(x.grade)}"></td><td><input class="batch-info-input" data-field="schoolYear" data-learner="${x.id}" value="${esc(x.schoolYear)}"></td></tr>`).join('');
 }
 function saveBatchLearnerInfo(){
-  document.querySelectorAll('.batch-info-input').forEach(el=>{const x=learners.find(v=>v.id===el.dataset.learner);if(x){x[el.dataset.field]=el.value;}});
+  document.querySelectorAll('.batch-info-input').forEach(el=>{const x=learners.find(v=>v.id===el.dataset.learner);if(x){x[el.dataset.field]=el.dataset.field==='birthday'?birthdayToISO(el.value):el.value;}});
   normalizeAllLearners(); persist(); renderLearners(); renderBatchTables(); alert('All student information saved successfully.');
 }
 function saveSchoolDays(){
@@ -679,11 +700,17 @@ function printSF9(){
     return `<tr><td class="${sub?'sub':''}">${esc(subject)}</td>${cell(g.t1)}${cell(g.t2)}${cell(g.t3)}${cell(final(g))}${cell(remark(final(g)))}</tr>`;
   }).join('');
 
-  const attendanceRows=['schoolDays','present','absent'].map((k,i)=>{
-    const total=months.reduce((a,m)=>a+Number((x.attendance[k]||{})[m]||0),0);
+  const attendanceRows=(()=>{
+    const schoolDays=months.map(m=>Number((x.attendance.schoolDays||{})[m]||schoolDaysByMonth[m]||0));
+    const present=months.map(m=>Number((x.attendance.present||{})[m]||0));
+    const absent=months.map((m,i)=>Math.max(0,schoolDays[i]-present[i]));
+    const rows=[schoolDays,present,absent];
     const labels=['No. of<br>Class<br>Days','No. of Days<br>Present','No. of Days<br>Absent'];
-    return `<tr><td>${labels[i]}</td>${months.map(m=>cell((x.attendance[k]||{})[m])).join('')}<td>${total||''}</td></tr>`;
-  }).join('');
+    return rows.map((vals,i)=>{
+      const total=vals.reduce((a,v)=>a+v,0);
+      return `<tr><td>${labels[i]}</td>${vals.map(v=>cell(String(v))).join('')}<td>${String(total)}</td></tr>`;
+    }).join('');
+  })();
 
   const page=`<div class="page">
     <div class="card">
