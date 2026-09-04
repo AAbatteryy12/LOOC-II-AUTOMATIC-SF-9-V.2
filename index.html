@@ -260,7 +260,7 @@ function loadCardInfoForm(){['schoolName','schoolYear','grade','principal','clus
 function saveCardInfo(){
   const get=id=>document.getElementById(id)?.value?.trim()||'';
   cardInfo={schoolName:get('cardSchoolName')||DEFAULT_CARD_INFO.schoolName,schoolYear:get('cardSchoolYear')||DEFAULT_CARD_INFO.schoolYear,grade:get('cardGrade')||DEFAULT_CARD_INFO.grade,principal:get('cardPrincipal')||DEFAULT_CARD_INFO.principal,cluster:get('cardCluster')||DEFAULT_CARD_INFO.cluster,adviser:get('cardAdviser')||DEFAULT_CARD_INFO.adviser,section:get('cardSection')||DEFAULT_CARD_INFO.section};
-  localStorage.setItem('sf9CardInfo2026',JSON.stringify(cardInfo));
+  try{localStorage.setItem('sf9CardInfo2026',JSON.stringify(cardInfo));}catch(e){console.warn('Local card cache is full; cloud sync will keep the data.',e)}
   syncCardInfoToLearners(); persist(); renderLearners();
   const st=document.getElementById('cardInfoStatus');if(st)st.textContent='Card information saved. It will appear on the next printed SF9.';
 }
@@ -328,7 +328,7 @@ function loadLearnerPhoto(input){
 }
 function clearLearnerPhoto(updateSelected=true){const input=document.getElementById('learnerPhoto');const img=document.getElementById('learnerPhotoPreview');const ph=document.getElementById('photoPlaceholder');if(input)input.value='';if(img){img.src='';img.style.display='none';}if(ph)ph.style.display='block';if(updateSelected&&selected)selected.photo='';}
 function showLearnerPhoto(src){const img=document.getElementById('learnerPhotoPreview');const ph=document.getElementById('photoPlaceholder');if(!img)return;if(src){img.src=src;img.style.display='block';if(ph)ph.style.display='none';}else{img.src='';img.style.display='none';if(ph)ph.style.display='block';}}
-function persist(){localStorage.setItem('sf9Learners2026',JSON.stringify(learners))}
+function persist(){try{localStorage.setItem('sf9Learners2026',JSON.stringify(learners));}catch(e){console.warn('Local learner cache is full; cloud sync will keep the data.',e)}}
 function setSort(key,dir){sortKey=key;sortDir=dir;renderLearners()}
 function renderLearners(){
   let q=(document.getElementById('search')?.value||'').toLowerCase();
@@ -359,7 +359,7 @@ function orderedLearners(){return [...learners].sort((a,b)=>{const sx=v=>String(
 function initTopScrollbars(){document.querySelectorAll('.top-scroll').forEach(top=>{const wrap=top.nextElementSibling;if(!wrap)return;const inner=top.firstElementChild;const sync=()=>{inner.style.width=wrap.scrollWidth+'px';};sync();top.onscroll=()=>{wrap.scrollLeft=top.scrollLeft};wrap.onscroll=()=>{top.scrollLeft=wrap.scrollLeft};window.addEventListener('resize',sync,{passive:true});});}
 function normalizeAllLearners(){learners.forEach(normalizeLearner)}
 function getBatchTerm(){return Number(localStorage.getItem('sf9BatchTerm')||1)}
-function showBatchTerm(term){localStorage.setItem('sf9BatchTerm',term);const title=document.getElementById('batchGradeTitle');if(title)title.textContent='TERM '+term+' — Grades';document.querySelectorAll('.term-pills .term-btn').forEach((b,i)=>b.classList.toggle('active',i+1===term));renderBatchTables();goToAppSection('batchGradePanel');}
+function showBatchTerm(term){try{localStorage.setItem('sf9BatchTerm',term);}catch(e){console.warn('Local term cache is full; cloud sync will keep the data.',e)}const title=document.getElementById('batchGradeTitle');if(title)title.textContent='TERM '+term+' — Grades';document.querySelectorAll('.term-pills .term-btn').forEach((b,i)=>b.classList.toggle('active',i+1===term));renderBatchTables();goToAppSection('batchGradePanel');}
 function batchGradeChanged(el){const id=el.dataset.learner,term=el.dataset.term,subject=decodeURIComponent(el.dataset.subject);const x=learners.find(v=>v.id===id);if(!x)return;normalizeLearner(x);x.grades[subject]=x.grades[subject]||{};x.grades[subject]['t'+term]=Number(el.value)||'';if(subject==='Music and Arts'||subject==='Physical Education and Health'){const m=x.grades['Music and Arts']||{},p=x.grades['Physical Education and Health']||{};x.grades.MAPEH=x.grades.MAPEH||{};x.grades.MAPEH['t'+term]=componentAverage(m['t'+term],p['t'+term]);const cell=document.getElementById('bm_'+id+'_'+term);if(cell)cell.textContent=x.grades.MAPEH['t'+term]||'';}persist();}
 function saveBatchGrades(){normalizeAllLearners();learners.forEach(x=>{normalizeLearner(x);x.grades.MAPEH=x.grades.MAPEH||{};[1,2,3].forEach(t=>{const m=x.grades['Music and Arts']||{},p=x.grades['Physical Education and Health']||{};x.grades.MAPEH['t'+t]=componentAverage(m['t'+t],p['t'+t]);});});persist();renderBatchTables();renderLearnersOnly();alert('All term grades saved successfully.')}
 function saveBatchComments(){document.querySelectorAll('.batch-comment-input').forEach(el=>{const x=learners.find(v=>v.id===el.dataset.learner);if(x){normalizeLearner(x);x.comments[Number(el.dataset.comment)]=el.value;}});persist();alert('All teacher comments saved successfully.')}
@@ -847,14 +847,18 @@ initAppSectionView();
   function applyState(st){
     if(!st) return;
     if(Array.isArray(st.learners)){
-      localStorage.setItem('sf9Learners2026',JSON.stringify(st.learners));
-      window.learners = st.learners;
+      /* The cloud record can be much larger than browser localStorage (especially with learner photos).
+         Keep the recovered records in the app's live memory even when localStorage is full. */
+      try{localStorage.setItem('sf9Learners2026',JSON.stringify(st.learners));}
+      catch(e){console.warn('Cloud data is larger than localStorage quota; using cloud data in memory.',e)}
+      learners = st.learners;
     }
     if(st.cardInfo){
-      localStorage.setItem('sf9CardInfo2026',JSON.stringify(st.cardInfo));
-      window.cardInfo = st.cardInfo;
+      try{localStorage.setItem('sf9CardInfo2026',JSON.stringify(st.cardInfo));}
+      catch(e){console.warn('Card info could not be cached locally; cloud data remains available.',e)}
+      cardInfo = st.cardInfo;
     }
-    if(st.batchTerm) localStorage.setItem('sf9BatchTerm',String(st.batchTerm));
+    if(st.batchTerm) try{localStorage.setItem('sf9BatchTerm',String(st.batchTerm));}catch(e){console.warn('Term could not be cached locally; cloud data remains available.',e)}
   }
 
   function refreshUI(){
