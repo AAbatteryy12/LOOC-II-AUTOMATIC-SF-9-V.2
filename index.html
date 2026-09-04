@@ -201,7 +201,7 @@
   </nav>
 </aside>
 <div class="main-content">
-<div class="panel" id="dashboard"><h2>SF9 Learners Data Platform — 2026</h2><p>Encode learner information, three-term grades, observed values, attendance and comments. Your records stay on this device/browser using localStorage.</p>
+<div class="panel" id="dashboard"><h2>SF9 Learners Data Platform — 2026</h2><p>Encode learner information, three-term grades, observed values, attendance and comments. Your records are cached on this device and securely backed up to your Supabase account.</p>
 <div class="dashboard-strip"><div class="dashboard-card"><div class="num" id="dashTotal">0</div><div class="lbl">TOTAL LEARNERS</div></div><div class="dashboard-card"><div class="num" id="dashSections">0</div><div class="lbl">SECTIONS USED</div></div><div class="dashboard-card"><div class="num">3</div><div class="lbl">TERMS</div></div></div>
 </div>
 <div class="panel card-info-panel" id="cardInfoPanel">
@@ -720,96 +720,7 @@ function initAppSectionView(){
 initAppSectionView();
 </script>
 
-\n<script>
-(function(){
-  'use strict';
-  function getConfig(){
-    const c=window.SF9_CONFIG || window.sf9Config || {};
-    const url=typeof c.url==='string'?c.url.trim():'';
-    const key=typeof c.publishableKey==='string'?c.publishableKey.trim():
-      (typeof c.publishable_key==='string'?c.publishable_key.trim():'');
-    return {url,key};
-  }
-  const overlay=document.getElementById('sf9AuthOverlay');
-  const login=document.getElementById('sf9LoginForm');
-  const reg=document.getElementById('sf9RegisterForm');
-  const msg=document.getElementById('sf9AuthMessage');
-  const tabIn=document.getElementById('sf9TabIn');
-  const tabReg=document.getElementById('sf9TabReg');
-  if(!overlay||!login||!reg||!msg||!tabIn||!tabReg)return;
-  let sb=null;
-  function message(t,ok){msg.textContent=t||'';msg.style.color=ok?'#166534':'#b91c1c';}
-  function configured(){
-    const c=getConfig();
-    return !!(c.url && /^https:\/\/[^\s]+\.supabase\.co\/?$/i.test(c.url) && c.key && window.supabase && typeof window.supabase.createClient==='function');
-  }
-  function mode(register){
-    login.hidden=!!register;
-    reg.hidden=!register;
-    tabIn.classList.toggle('active',!register);
-    tabReg.classList.toggle('active',!!register);
-    message('',true);
-  }
-  function showAccount(user){
-    overlay.hidden=true;
-    let bar=document.getElementById('sf9AccountBar');
-    if(!bar){bar=document.createElement('div');bar.id='sf9AccountBar';document.body.appendChild(bar)}
-    bar.textContent='Signed in: '+((user&&user.user_metadata&&user.user_metadata.full_name)||((user&&user.email)||'Account'))+' ';
-    const b=document.createElement('button');b.type='button';b.textContent='SIGN OUT';bar.appendChild(b);
-    b.onclick=()=>sb && sb.auth.signOut();
-  }
-  function showLogin(){
-    overlay.hidden=false;
-    const b=document.getElementById('sf9AccountBar');if(b)b.remove();
-  }
-  tabIn.onclick=()=>mode(false);
-  tabReg.onclick=()=>mode(true);
-  document.getElementById('sf9Forgot').onclick=async()=>{
-    if(!sb)return message('Supabase is not initialized. Check that config.js is beside index.html.');
-    const email=document.getElementById('sf9Email').value.trim();
-    if(!email)return message('Enter your email first.');
-    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href});
-    message(error?error.message:'Password reset email sent.',!error);
-  };
-  reg.onsubmit=async e=>{
-    e.preventDefault();
-    if(!sb)return message('Supabase is not initialized. Check that config.js is beside index.html.');
-    const p=document.getElementById('sf9RegPassword').value;
-    if(p!==document.getElementById('sf9RegConfirm').value)return message('Passwords do not match.');
-    message('Creating account...',true);
-    const {data,error}=await sb.auth.signUp({email:document.getElementById('sf9RegEmail').value.trim(),password:p,options:{data:{full_name:document.getElementById('sf9Name').value.trim()}}});
-    if(error)return message(error.message);
-    if(data.session)showAccount(data.user);else message('Account created. Check your email, then sign in.',true);
-  };
-  login.onsubmit=async e=>{
-    e.preventDefault();
-    if(!sb)return message('Supabase is not initialized. Check that config.js is beside index.html.');
-    message('Signing in...',true);
-    const {data,error}=await sb.auth.signInWithPassword({email:document.getElementById('sf9Email').value.trim(),password:document.getElementById('sf9Password').value});
-    if(error)return message(error.message);
-    showAccount(data.user);
-  };
-  async function init(){
-    const c=getConfig();
-    if(!configured()){
-      message('Supabase configuration could not be loaded. Make sure config.js is in the same folder as index.html and defines SF9_CONFIG.',false);
-      return;
-    }
-    try{
-      sb=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-      sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')showLogin();else if(session)showAccount(session.user)});
-      const {data,error}=await sb.auth.getSession();
-      if(error){message(error.message,false);return;}
-      if(data&&data.session)showAccount(data.session.user);else showLogin();
-    }catch(err){
-      sb=null;
-      message('Supabase initialization failed: '+(err&&err.message?err.message:String(err)),false);
-      console.error('SF9 Supabase initialization error',err);
-    }
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-})();
-</script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
@@ -887,4 +798,224 @@ initAppSectionView();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+<script>
+/* SF9 CLOUD DATA RESTORE + AUTO-SYNC
+   Stores the complete SF9 application state in Supabase per signed-in account.
+   LocalStorage remains as a fast local cache and migration source.
+*/
+(function(){
+  'use strict';
+
+  const TABLE = (window.SF9_CONFIG && window.SF9_CONFIG.dataTable) || 'sf9_user_data';
+  let client = null;
+  let signedInUser = null;
+  let syncing = false;
+  let saveTimer = null;
+
+  function cfg(){
+    const c=window.SF9_CONFIG||{};
+    return {
+      url: typeof c.url==='string' ? c.url.trim() : '',
+      key: typeof c.publishableKey==='string' ? c.publishableKey.trim() : ''
+    };
+  }
+
+  function getLocalLearners(){
+    try { return JSON.parse(localStorage.getItem('sf9Learners2026')||'[]'); }
+    catch(e){ console.error('SF9 local learner data error',e); return []; }
+  }
+
+  function getLocalCardInfo(){
+    try { return JSON.parse(localStorage.getItem('sf9CardInfo2026')||'null'); }
+    catch(e){ return null; }
+  }
+
+  function getLocalState(){
+    return {
+      version: 1,
+      learners: getLocalLearners(),
+      cardInfo: getLocalCardInfo(),
+      batchTerm: Number(localStorage.getItem('sf9BatchTerm')||1)
+    };
+  }
+
+  function hasUsefulState(st){
+    return !!(st && ((Array.isArray(st.learners)&&st.learners.length) || st.cardInfo));
+  }
+
+  function applyState(st){
+    if(!st) return;
+    if(Array.isArray(st.learners)){
+      localStorage.setItem('sf9Learners2026',JSON.stringify(st.learners));
+      window.learners = st.learners;
+    }
+    if(st.cardInfo){
+      localStorage.setItem('sf9CardInfo2026',JSON.stringify(st.cardInfo));
+      window.cardInfo = st.cardInfo;
+    }
+    if(st.batchTerm) localStorage.setItem('sf9BatchTerm',String(st.batchTerm));
+  }
+
+  function refreshUI(){
+    try{
+      if(typeof loadCardInfoForm==='function') loadCardInfoForm();
+      if(typeof normalizeAllLearners==='function') normalizeAllLearners();
+      if(typeof renderLearners==='function') renderLearners();
+      if(typeof showBatchTerm==='function') showBatchTerm(Number(localStorage.getItem('sf9BatchTerm')||1));
+    }catch(e){ console.warn('SF9 UI refresh after restore:',e); }
+  }
+
+  async function getUser(){
+    if(!client) return null;
+    const r=await client.auth.getUser();
+    return r.data && r.data.user ? r.data.user : null;
+  }
+
+  async function readCloud(){
+    if(!client || !signedInUser) return null;
+    const {data,error}=await client.from(TABLE)
+      .select('data,updated_at')
+      .eq('user_id',signedInUser.id)
+      .maybeSingle();
+    if(error){
+      console.error('SF9 cloud read failed:',error);
+      throw error;
+    }
+    return data ? data.data : null;
+  }
+
+  async function writeCloud(state){
+    if(!client || !signedInUser || syncing) return;
+    syncing=true;
+    try{
+      const payload={
+        user_id:signedInUser.id,
+        data:state,
+        updated_at:new Date().toISOString()
+      };
+      const {error}=await client.from(TABLE).upsert(payload,{onConflict:'user_id'});
+      if(error) throw error;
+    }catch(e){
+      console.error('SF9 cloud save failed:',e);
+      showCloudStatus('Cloud save failed: '+(e.message||e),false);
+    }finally{ syncing=false; }
+  }
+
+  function showCloudStatus(text,ok){
+    const el=document.getElementById('cardInfoStatus');
+    if(el){
+      el.textContent=text;
+      el.style.color=ok?'#166534':'#b91c1c';
+    }
+  }
+
+  async function restoreAfterLogin(){
+    if(!client || !signedInUser) return;
+    try{
+      const local=getLocalState();
+      const cloud=await readCloud();
+
+      if(cloud && hasUsefulState(cloud)){
+        /* Cloud is the recovery source. Merge only learners that exist locally
+           but are not present in the cloud, so a prior cloud record is never lost. */
+        let merged=Array.isArray(cloud.learners)?cloud.learners.slice():[];
+        const ids=new Set(merged.map(x=>String(x.id||'')));
+        const lrns=new Set(merged.map(x=>String(x.lrn||'').trim()).filter(Boolean));
+
+        if(Array.isArray(local.learners)){
+          for(const item of local.learners){
+            const id=String(item.id||'');
+            const lrn=String(item.lrn||'').trim();
+            if((id && ids.has(id)) || (lrn && lrns.has(lrn))) continue;
+            merged.push(item);
+          }
+        }
+        const restored={
+          version:1,
+          learners:merged,
+          cardInfo:cloud.cardInfo || local.cardInfo || null,
+          batchTerm:cloud.batchTerm || local.batchTerm || 1
+        };
+        applyState(restored);
+        refreshUI();
+
+        /* If local-only records were merged, persist the complete recovered set. */
+        if(merged.length !== (Array.isArray(cloud.learners)?cloud.learners.length:0)){
+          await writeCloud(restored);
+        }
+        showCloudStatus('All saved SF9 data restored from your account.',true);
+      }else if(hasUsefulState(local)){
+        /* First login on this account: migrate existing browser data to the account. */
+        await writeCloud(local);
+        showCloudStatus('Existing device data backed up to your account.',true);
+      }else{
+        showCloudStatus('No previous SF9 records found for this account.',true);
+      }
+    }catch(e){
+      showCloudStatus('Could not restore cloud data: '+(e.message||e),false);
+    }
+  }
+
+  function scheduleCloudSave(){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(async()=>{
+      if(!client || !signedInUser || syncing) return;
+      await writeCloud(getLocalState());
+    },700);
+  }
+
+  function installPersistHook(){
+    if(window.__sf9CloudPersistHook)return;
+    if(typeof window.persist!=='function')return;
+    const original=window.persist;
+    window.persist=function(){
+      original.apply(this,arguments);
+      scheduleCloudSave();
+    };
+    window.__sf9CloudPersistHook=true;
+  }
+
+  async function init(){
+    const c=cfg();
+    if(!c.url || !c.key || !window.supabase || typeof window.supabase.createClient!=='function'){
+      console.warn('SF9 cloud sync skipped: Supabase/config not ready.');
+      return;
+    }
+    client=window.supabase.createClient(c.url,c.key,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+    });
+    installPersistHook();
+
+    client.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_OUT'){
+        signedInUser=null;
+        return;
+      }
+      if(session && session.user){
+        signedInUser=session.user;
+        await restoreAfterLogin();
+      }
+    });
+
+    const {data,error}=await client.auth.getSession();
+    if(error){console.error('SF9 session check failed:',error);return;}
+    if(data && data.session){
+      signedInUser=data.session.user;
+      await restoreAfterLogin();
+    }
+  }
+
+  /* Wait for the CDN Supabase library and config.js to load. */
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});
+  }else setTimeout(init,0);
+
+  window.sf9Cloud={
+    restore:restoreAfterLogin,
+    save:()=>writeCloud(getLocalState())
+  };
+})();
+</script>
+
 </body></html>
