@@ -138,6 +138,31 @@
 .attendance-batch{min-width:1000px}
 @media(max-width:1000px){#inputPanel .grid{grid-template-columns:1fr 1fr}}
 
+
+/* EDIT LEARNERS INFO — Excel-like editing */
+#editLearnersPanel .edit-info-wrap{overflow:auto;border:1px solid #cbd5e1;border-radius:8px}
+#editLearnersPanel .edit-info-table{width:100%;min-width:900px;border-collapse:collapse;font-size:12px;background:#fff;table-layout:fixed}
+#editLearnersPanel .edit-info-table th,#editLearnersPanel .edit-info-table td{border:1px solid #cbd5e1;padding:5px;text-align:center;vertical-align:middle}
+#editLearnersPanel .edit-info-table th{background:#edf1f7;font-weight:800}
+#editLearnersPanel .edit-info-table th.profile-col,#editLearnersPanel .edit-info-table td.profile-col{width:78px}
+#editLearnersPanel .edit-info-table th.lrn-col,#editLearnersPanel .edit-info-table td.lrn-col{width:125px}
+#editLearnersPanel .edit-info-table th.name-col,#editLearnersPanel .edit-info-table td.name-col{width:360px;text-align:left}
+#editLearnersPanel .edit-info-table th.sex-col,#editLearnersPanel .edit-info-table td.sex-col{width:90px}
+#editLearnersPanel .edit-info-table th.age-col,#editLearnersPanel .edit-info-table td.age-col{width:55px}
+#editLearnersPanel .edit-info-table th.bday-col,#editLearnersPanel .edit-info-table td.bday-col{width:135px}
+#editLearnersPanel .edit-info-table th.grade-col,#editLearnersPanel .edit-info-table td.grade-col{width:65px}
+#editLearnersPanel .edit-info-table input,#editLearnersPanel .edit-info-table select{width:100%;min-width:0;padding:6px 5px;border:1px solid #cbd5e1;border-radius:4px;font-family:inherit;font-size:12px;background:#fff}
+#editLearnersPanel .edit-profile-thumb{width:42px;height:42px;border-radius:5px;object-fit:cover;border:1px solid #cbd5e1;display:block;margin:auto}
+#editLearnersPanel .edit-profile-empty{width:42px;height:42px;border:1px dashed #94a3b8;border-radius:5px;display:flex;align-items:center;justify-content:center;margin:auto;font-size:9px;color:#64748b}
+#editLearnersPanel .edit-info-note{font-size:11px;color:#64748b;margin:-5px 0 12px}
+#editLearnersPanel .edit-info-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+#editLearnersPanel .edit-info-toolbar input{max-width:350px;padding:9px;border:1px solid #cbd5e1;border-radius:6px}
+#editLearnersPanel .edit-row-status{font-size:10px;color:#166534;white-space:nowrap}
+/* Remove number-input spinner increase/decrease controls while keeping number entry. */
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+/* Keyboard navigation */
+.batch-grade-input,.grade-input{outline-offset:-1px}
 </style>
 <style id="auth-only-style">
 #sf9AuthOverlay{position:fixed;inset:0;z-index:999999;background:rgba(8,28,67,.96);display:flex;align-items:center;justify-content:center;padding:20px;font-family:"Bookman Old Style","Bookman",serif}
@@ -190,6 +215,7 @@
   <nav>
     <button class="nav-item active" data-nav="dashboard" onclick="goToAppSection('dashboard',this)"><span class="nav-icon">▣</span>Dashboard</button>
     <button class="nav-item" data-nav="input" onclick="goToAppSection('inputPanel',this)"><span class="nav-icon">✎</span>Input Data</button>
+    <button class="nav-item" data-nav="editLearners" onclick="showEditLearnersPanel(this)"><span class="nav-icon">▤</span>Edit Learners Info</button>
     <button class="nav-item" data-nav="cardInfo" onclick="goToAppSection('cardInfoPanel',this)"><span class="nav-icon">▤</span>Card Info</button>
     <div class="nav-title">Terms</div>
     <div class="term-group"><button class="term-btn" onclick="showBatchTerm(1)">1</button><button class="term-btn" onclick="showBatchTerm(2)">2</button><button class="term-btn" onclick="showBatchTerm(3)">3</button></div>
@@ -235,11 +261,28 @@
 <div class="field"><label>Birthday</label><input id="birthday" type="date"></div>
 <div class="field age-field"><label>Age</label><input id="age" type="number"></div>
 </div><div class="buttons"><button id="addLearnerBtn" onclick="addLearner()">Save Learner</button><button class="gray" onclick="clearLearnerForm()">Clear</button></div></div>
+<div class="panel" id="editLearnersPanel">
+  <h2>Edit Learners Information</h2>
+  <p class="edit-info-note">Edit learner profile, LRN, name, sex, age, birthday and grade directly in the table, like Excel. Changes are saved to your Supabase account.</p>
+  <div class="edit-info-toolbar">
+    <input id="editLearnerSearch" placeholder="Search learner name or LRN" oninput="renderEditLearners()">
+    <button onclick="saveEditLearners()">Save All Changes</button>
+    <button class="gray" onclick="renderEditLearners()">Reload</button>
+    <button class="gray" onclick="exportAllDataExcel()">Export All Data to Excel</button>
+  </div>
+  <div class="edit-info-wrap">
+    <table class="edit-info-table">
+      <thead><tr><th class="profile-col">Profile</th><th class="lrn-col">LRN</th><th class="name-col">Name of Learner</th><th class="sex-col">Sex</th><th class="age-col">Age</th><th class="bday-col">Birthday</th><th class="grade-col">Grade</th></tr></thead>
+      <tbody id="editLearnerRows"></tbody>
+    </table>
+  </div>
+  <div id="editLearnersStatus" style="margin-top:8px;font-size:11px;color:#64748b"></div>
+</div>
 <div class="panel" id="learnersPanel"><h2>School Form 9 — Learner Master List</h2><p class="batch-note">Add learner information here. Grades, attendance, and comments are now encoded <b>by term and by class</b>, similar to the batch-entry format shown in your reference.</p><div class="buttons" style="margin-top:0"><input id="search" placeholder="Search learner name, LRN, grade or section" oninput="renderLearners()" style="max-width:350px;padding:9px;width:100%"><button class="gray" onclick="setSort('section','asc')">Section ↑</button><button class="gray" onclick="setSort('section','desc')">Section ↓</button><button class="gray" onclick="setSort('name','asc')">Name ↑</button><button class="gray" onclick="setSort('name','desc')">Name ↓</button><button class="gray" onclick="setSort('grade','asc')">Grade ↑</button><button class="gray" onclick="setSort('grade','desc')">Grade ↓</button></div><div class="top-scroll" aria-label="Horizontal scroll"><div></div></div><div class="tablewrap"><table class="data-table"><thead><tr><th>#</th><th>Learner Photo</th><th>Name of Learner</th><th>LRN</th><th>Grade</th><th>Section</th><th>Action</th></tr></thead><tbody id="learnerRows"></tbody></table></div></div>
 <div class="panel" id="rankPanel"><div class="rank-head"><div><h2>Learner Ranking</h2><p class="batch-note">Rank learners by their completed average for a selected term or the overall final average.</p></div><div class="rank-controls"><label for="rankPeriod">Ranking Period</label><select id="rankPeriod" onchange="renderRankTable()"><option value="t1">Term 1</option><option value="t2">Term 2</option><option value="t3">Term 3</option><option value="overall">Overall</option></select></div></div><div class="tablewrap"><table class="data-table rank-table"><thead><tr><th>Rank</th><th>Name of Learner</th><th>Grade</th><th>Section</th><th>Average</th><th>Status</th></tr></thead><tbody id="rankRows"></tbody></table></div></div>
 <div class="panel batch-panel" id="batchGradePanel"><div class="batch-toolbar"><div><h2 id="batchGradeTitle">TERM 1 — Grades</h2><p>Encode the selected term for all learners. Changes are saved together with the class records.</p></div><div class="term-pills"><button class="term-btn active" onclick="showBatchTerm(1)">TERM 1</button><button class="term-btn" onclick="showBatchTerm(2)">TERM 2</button><button class="term-btn" onclick="showBatchTerm(3)">TERM 3</button></div></div><div class="top-scroll" aria-label="Horizontal scroll"><div></div></div><div class="batch-table-wrap"><table class="batch-table"><thead><tr><th class="sticky-name">Name of Learners</th><th>Filipino</th><th>English</th><th>Mathematics</th><th>Science</th><th>Araling<br>Panlipunan (AP)</th><th>GMRC/Values<br>Education</th><th>EPP / TLE</th><th>MAPEH</th><th>Music and<br>Arts</th><th>Physical Education<br>and Health</th></tr></thead><tbody id="batchGradeRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchGrades()">Save All Grades</button><button class="gray" onclick="selectFirstLearnerForPrint()">Select First Learner</button></div></div>
 <div class="panel batch-panel" id="batchCommentsPanel"><h2>TEACHER'S COMMENTS / REMARKS</h2><p>Encode comments for all learners in one table, with one column for each term.</p><div class="batch-table-wrap"><table class="batch-table comments-batch"><thead><tr><th class="sticky-name">LEARNERS' NAME</th><th>TERM 1</th><th>TERM 2</th><th>TERM 3</th></tr></thead><tbody id="batchCommentRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchComments()">Save All Comments</button></div></div>
-<div class="panel batch-panel" id="batchAttendancePanel"><h2>ATTENDANCE</h2><p>Encode attendance for all learners by month.</p><div class="batch-table-wrap"><table class="batch-table attendance-batch"><thead><tr><th class="sticky-name">LEARNERS' NAME</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th></tr></thead><tbody id="batchAttendanceRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchAttendance()">Save All Attendance</button></div></div>
+<div class="panel batch-panel" id="batchAttendancePanel"><h2>ATTENDANCE</h2><p>Encode <b>No. of Class Days</b> and <b>No. of Days Present</b> for each month. Absent is calculated automatically as Class Days − Present and will appear on the generated SF9 when Present is encoded.</p><div class="batch-table-wrap"><table class="batch-table attendance-batch"><thead><tr><th class="sticky-name" rowspan="2">LEARNERS' NAME</th><th colspan="2">Jun</th><th colspan="2">Jul</th><th colspan="2">Aug</th><th colspan="2">Sep</th><th colspan="2">Oct</th><th colspan="2">Nov</th><th colspan="2">Dec</th><th colspan="2">Jan</th><th colspan="2">Feb</th><th colspan="2">Mar</th><th colspan="2">Apr</th></tr><tr><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th><th>Class Days</th><th>Present</th></tr></thead><tbody id="batchAttendanceRows"></tbody></table></div><div class="buttons"><button onclick="saveBatchAttendance()">Save All Attendance</button></div></div>
 <div class="panel" id="editor" style="display:none"><h2 id="editorTitle"></h2><h3>Report on Learning Progress and Achievement</h3><div class="tablewrap"><table class="data-table"><thead><tr><th>Learning Area</th><th>Term 1</th><th>Term 2</th><th>Term 3</th><th>Final Rating</th><th>Remarks</th></tr></thead><tbody id="gradeRows"></tbody></table></div>
 <h3 id="attendanceSection" style="margin-top:16px">Attendance</h3><div class="tablewrap"><table class="data-table"><thead><tr><th></th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>Total</th></tr></thead><tbody id="attendanceRows"></tbody></table></div>
 <h3 id="commentsSection" style="margin-top:16px">Teacher's Comments/Remarks</h3><div class="grid"><div class="field wide"><label>1st Term</label><textarea id="comment1"></textarea></div><div class="field wide"><label>2nd Term</label><textarea id="comment2"></textarea></div><div class="field wide"><label>3rd Term</label><textarea id="comment3"></textarea></div></div>
@@ -333,7 +376,7 @@ function setSort(key,dir){sortKey=key;sortDir=dir;renderLearners()}
 function renderLearners(){
   let q=(document.getElementById('search')?.value||'').toLowerCase();
   let rows=learners.filter(x=>(x.name+' '+x.lrn+' '+x.grade+' '+x.section).toLowerCase().includes(q));
-  rows.sort((a,b)=>{let av=a[sortKey]??'',bv=b[sortKey]??''; if(sortKey==='grade'){let an=parseInt(av)||0,bn=parseInt(bv)||0; return sortDir==='asc'?an-bn:bn-an;} av=String(av).toLowerCase();bv=String(bv).toLowerCase();return sortDir==='asc'?av.localeCompare(bv):bv.localeCompare(av);});
+  rows.sort((a,b)=>{const sx=v=>String(v.sex||'').toLowerCase()==='male'?0:String(v.sex||'').toLowerCase()==='female'?1:2;const sexCmp=sx(a)-sx(b);if(sexCmp)return sexCmp;let av=a[sortKey]??'',bv=b[sortKey]??'';if(sortKey==='grade'){let an=parseInt(av)||0,bn=parseInt(bv)||0;return sortDir==='asc'?an-bn:bn-an;}av=String(av).toLowerCase();bv=String(bv).toLowerCase();return sortDir==='asc'?av.localeCompare(bv):bv.localeCompare(av);});
   learnerRows.innerHTML=rows.map((x,i)=>`<tr><td>${i+1}</td><td>${x.photo?`<img class="learner-thumb" src="${x.photo}" alt="">`:''}</td><td>${esc(x.name)}</td><td>${esc(x.lrn)}</td><td>${esc(x.grade)}</td><td>${esc(x.section)}</td><td class="batch-action"><button onclick="selectLearner('${x.id}')">Edit / Select</button> <button class="gray" onclick="editLearnerInfo('${x.id}')">Edit Info</button> <button onclick="printSelectedLearner('${x.id}')">Print</button> <button class="red" onclick="deleteLearner('${x.id}')">Delete</button></td></tr>`).join('');
   const dt=document.getElementById('dashTotal'), ds=document.getElementById('dashSections'); if(dt)dt.textContent=learners.length; if(ds)ds.textContent=new Set(learners.map(x=>x.section).filter(Boolean)).size;
   renderBatchTables();
@@ -353,7 +396,7 @@ function renderBatchTables(){
   }).join('');
   const gr=document.getElementById('batchGradeRows'); if(gr)gr.innerHTML=rows;
   const cr=document.getElementById('batchCommentRows'); if(cr)cr.innerHTML=ordered.map((x,i)=>`<tr><td class="sticky-name">${i+1}. ${esc(x.name)}</td>${[0,1,2].map(t=>`<td><textarea class="batch-comment-input" data-learner="${x.id}" data-comment="${t}">${esc((x.comments||['','',''])[t]||'')}</textarea></td>`).join('')}</tr>`).join('');
-  const ar=document.getElementById('batchAttendanceRows'); if(ar)ar.innerHTML=ordered.map((x,i)=>`<tr><td class="sticky-name">${i+1}. ${esc(x.name)}</td>${months.map(m=>`<td><input class="batch-att-input" type="number" min="0" value="${esc((x.attendance?.present||{})[m]||'')}" data-learner="${x.id}" data-month="${m}"></td>`).join('')}</tr>`).join('');
+  const ar=document.getElementById('batchAttendanceRows'); if(ar)ar.innerHTML=ordered.map((x,i)=>`<tr><td class="sticky-name">${i+1}. ${esc(x.name)}</td>${months.map(m=>`<td><input class="batch-att-input" type="number" min="0" value="${esc((x.attendance?.schoolDays||{})[m]||'')}" data-learner="${x.id}" data-month="${m}" data-att-key="schoolDays"></td><td><input class="batch-att-input" type="number" min="0" value="${esc((x.attendance?.present||{})[m]||'')}" data-learner="${x.id}" data-month="${m}" data-att-key="present"></td>`).join('')}</tr>`).join('');
 }
 function orderedLearners(){return [...learners].sort((a,b)=>{const sx=v=>String(v.sex||'').toLowerCase()==='male'?0:String(v.sex||'').toLowerCase()==='female'?1:2; return sx(a)-sx(b)||String(a.name||'').localeCompare(String(b.name||''));})}
 function initTopScrollbars(){document.querySelectorAll('.top-scroll').forEach(top=>{const wrap=top.nextElementSibling;if(!wrap)return;const inner=top.firstElementChild;const sync=()=>{inner.style.width=wrap.scrollWidth+'px';};sync();top.onscroll=()=>{wrap.scrollLeft=top.scrollLeft};wrap.onscroll=()=>{top.scrollLeft=wrap.scrollLeft};window.addEventListener('resize',sync,{passive:true});});}
@@ -363,8 +406,12 @@ function showBatchTerm(term){try{localStorage.setItem('sf9BatchTerm',term);}catc
 function batchGradeChanged(el){const id=el.dataset.learner,term=el.dataset.term,subject=decodeURIComponent(el.dataset.subject);const x=learners.find(v=>v.id===id);if(!x)return;normalizeLearner(x);x.grades[subject]=x.grades[subject]||{};x.grades[subject]['t'+term]=Number(el.value)||'';if(subject==='Music and Arts'||subject==='Physical Education and Health'){const m=x.grades['Music and Arts']||{},p=x.grades['Physical Education and Health']||{};x.grades.MAPEH=x.grades.MAPEH||{};x.grades.MAPEH['t'+term]=componentAverage(m['t'+term],p['t'+term]);const cell=document.getElementById('bm_'+id+'_'+term);if(cell)cell.textContent=x.grades.MAPEH['t'+term]||'';}persist();}
 function saveBatchGrades(){normalizeAllLearners();learners.forEach(x=>{normalizeLearner(x);x.grades.MAPEH=x.grades.MAPEH||{};[1,2,3].forEach(t=>{const m=x.grades['Music and Arts']||{},p=x.grades['Physical Education and Health']||{};x.grades.MAPEH['t'+t]=componentAverage(m['t'+t],p['t'+t]);});});persist();renderBatchTables();renderLearnersOnly();alert('All term grades saved successfully.')}
 function saveBatchComments(){document.querySelectorAll('.batch-comment-input').forEach(el=>{const x=learners.find(v=>v.id===el.dataset.learner);if(x){normalizeLearner(x);x.comments[Number(el.dataset.comment)]=el.value;}});persist();alert('All teacher comments saved successfully.')}
-function saveBatchAttendance(){document.querySelectorAll('.batch-att-input').forEach(el=>{const x=learners.find(v=>v.id===el.dataset.learner);if(x){normalizeLearner(x);x.attendance.present[el.dataset.month]=el.value;}});persist();alert('All attendance records saved successfully.')}
-function renderLearnersOnly(){let q=(document.getElementById('search')?.value||'').toLowerCase();let rows=learners.filter(x=>(x.name+' '+x.lrn+' '+x.grade+' '+x.section).toLowerCase().includes(q));rows.sort((a,b)=>{let av=a[sortKey]??'',bv=b[sortKey]??'';if(sortKey==='grade'){let an=parseInt(av)||0,bn=parseInt(bv)||0;return sortDir==='asc'?an-bn:bn-an;}return sortDir==='asc'?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));});learnerRows.innerHTML=rows.map((x,i)=>`<tr><td>${i+1}</td><td>${x.photo?`<img class="learner-thumb" src="${x.photo}" alt="">`:''}</td><td>${esc(x.name)}</td><td>${esc(x.lrn)}</td><td>${esc(x.grade)}</td><td>${esc(x.section)}</td><td class="batch-action"><button onclick="selectLearner('${x.id}')">Edit / Select</button> <button class="gray" onclick="editLearnerInfo('${x.id}')">Edit Info</button> <button onclick="printSelectedLearner('${x.id}')">Print</button> <button class="red" onclick="deleteLearner('${x.id}')">Delete</button></td></tr>`).join('');}
+function saveBatchAttendance(){
+  document.querySelectorAll('.batch-att-input').forEach(el=>{const x=learners.find(v=>v.id===el.dataset.learner);if(x){normalizeLearner(x);const key=el.dataset.attKey||'present';x.attendance[key][el.dataset.month]=el.value;}});
+  learners.forEach(x=>{normalizeLearner(x);months.forEach(m=>{const d=Number(x.attendance.schoolDays[m]);const p=Number(x.attendance.present[m]);x.attendance.absent[m]=(String(x.attendance.present[m]??'').trim()!==''&&Number.isFinite(d)&&Number.isFinite(p))?String(Math.max(0,d-p)):'';});});
+  persist();renderBatchTables();alert('All attendance records saved successfully.');
+}
+function renderLearnersOnly(){let q=(document.getElementById('search')?.value||'').toLowerCase();let rows=learners.filter(x=>(x.name+' '+x.lrn+' '+x.grade+' '+x.section).toLowerCase().includes(q));rows.sort((a,b)=>{const sx=v=>String(v.sex||'').toLowerCase()==='male'?0:String(v.sex||'').toLowerCase()==='female'?1:2;const sexCmp=sx(a)-sx(b);if(sexCmp)return sexCmp;let av=a[sortKey]??'',bv=b[sortKey]??'';if(sortKey==='grade'){let an=parseInt(av)||0,bn=parseInt(bv)||0;return sortDir==='asc'?an-bn:bn-an;}return sortDir==='asc'?String(av).localeCompare(String(bv)):String(bv).localeCompare(String(av));});learnerRows.innerHTML=rows.map((x,i)=>`<tr><td>${i+1}</td><td>${x.photo?`<img class="learner-thumb" src="${x.photo}" alt="">`:''}</td><td>${esc(x.name)}</td><td>${esc(x.lrn)}</td><td>${esc(x.grade)}</td><td>${esc(x.section)}</td><td class="batch-action"><button onclick="selectLearner('${x.id}')">Edit / Select</button> <button class="gray" onclick="editLearnerInfo('${x.id}')">Edit Info</button> <button onclick="printSelectedLearner('${x.id}')">Print</button> <button class="red" onclick="deleteLearner('${x.id}')">Delete</button></td></tr>`).join('');}
 function printSelectedLearner(id){selected=learners.find(x=>x.id===id)||null;if(selected){normalizeLearner(selected);printSF9();}}
 function selectFirstLearnerForPrint(){if(learners[0]){selected=learners[0];normalizeLearner(selected);printSF9();}else alert('Add a learner first.')}
 function selectLearner(i){
@@ -419,7 +466,7 @@ function updateMapeh(){
 }
 function final(g){const a=[Number(g.t1),Number(g.t2),Number(g.t3)];return a.every(n=>n>0)?Math.round(a.reduce((x,y)=>x+y,0)/3):''}
 function remark(n){if(!n)return '';return n>=75?'Passed':'Failed'}
-function attendanceData(){normalizeLearner(selected);return ['No. of School Days','No. of Days Present','No. of Times Absent'].map((r,i)=>`<tr><td>${r}</td>${months.map(m=>`<td><input class="grade-input" style="width:45px" type="number" id="a${i}_${m}" value="${(selected.attendance[['schoolDays','present','absent'][i]]||{})[m]||''}"></td>`).join('')}<td></td></tr>`).join('')}
+function attendanceData(){normalizeLearner(selected);return ['No. of School Days','No. of Days Present','No. of Times Absent'].map((r,i)=>`<tr><td>${r}</td>${months.map(m=>`<td><input class="grade-input attendance-input" style="width:45px" type="number" id="a${i}_${m}" value="${(selected.attendance[['schoolDays','present','absent'][i]]||{})[m]||''}" ${i===2?'readonly':''}></td>`).join('')}<td></td></tr>`).join('')}
 function saveCurrent(showMessage=true){
   if(!selected){
     alert('Please click Edit Record for a learner first.');
@@ -449,11 +496,12 @@ function saveCurrent(showMessage=true){
   };
 
   selected.attendance={schoolDays:{},present:{},absent:{}};
-  ['schoolDays','present','absent'].forEach((k,i)=>{
-    months.forEach(m=>{
-      const el=get('a'+i+'_'+m);
-      selected.attendance[k][m]=el?el.value:'';
-    });
+  months.forEach(m=>{
+    const sd=get('a0_'+m)?.value||'';
+    const pr=get('a1_'+m)?.value||'';
+    selected.attendance.schoolDays[m]=sd;
+    selected.attendance.present[m]=pr;
+    selected.attendance.absent[m]=(String(pr).trim()!==''&&String(sd).trim()!==''&&Number.isFinite(Number(sd))&&Number.isFinite(Number(pr)))?String(Math.max(0,Number(sd)-Number(pr))):'';
   });
   selected.comments=[get('comment1')?.value||'',get('comment2')?.value||'',get('comment3')?.value||''];
 
@@ -474,6 +522,89 @@ function gval(n,t){
   if(!el)return '';
   return Number(el.value)||'';
 }
+function showEditLearnersPanel(btn){
+  goToAppSection('editLearnersPanel',btn);
+  renderEditLearners();
+}
+function renderEditLearners(){
+  normalizeAllLearners();
+  const q=(document.getElementById('editLearnerSearch')?.value||'').trim().toLowerCase();
+  const rows=learners.filter(x=>String(x.name||'').toLowerCase().includes(q)||String(x.lrn||'').toLowerCase().includes(q));
+  const tbody=document.getElementById('editLearnerRows');
+  if(!tbody)return;
+  tbody.innerHTML=rows.map(x=>`<tr data-id="${esc(x.id)}">
+    <td class="profile-col">${x.photo?`<img class="edit-profile-thumb" src="${x.photo}" alt="">`:`<div class="edit-profile-empty">No photo</div>`}</td>
+    <td class="lrn-col"><input class="edit-lrn" value="${esc(x.lrn||'')}" maxlength="12"></td>
+    <td class="name-col"><input class="edit-name" value="${esc(x.name||'')}"></td>
+    <td class="sex-col"><select class="edit-sex"><option value="">Select</option><option ${String(x.sex).toLowerCase()==='male'?'selected':''}>Male</option><option ${String(x.sex).toLowerCase()==='female'?'selected':''}>Female</option></select></td>
+    <td class="age-col"><input class="edit-age" type="number" min="0" value="${esc(x.age||'')}"></td>
+    <td class="bday-col"><input class="edit-birthday" type="date" value="${esc(x.birthday||'')}"></td>
+    <td class="grade-col"><input class="edit-grade" type="number" min="0" value="${esc(x.grade||'')}"></td>
+  </tr>`).join('')||'<tr><td colspan="7" style="padding:20px;color:#64748b">No learners found.</td></tr>';
+}
+function saveEditLearners(){
+  const rows=document.querySelectorAll('#editLearnerRows tr[data-id]');
+  let count=0;
+  rows.forEach(row=>{
+    const x=learners.find(v=>v.id===row.dataset.id); if(!x)return;
+    x.lrn=row.querySelector('.edit-lrn')?.value.trim()||'';
+    x.name=row.querySelector('.edit-name')?.value.trim()||'';
+    x.sex=row.querySelector('.edit-sex')?.value||'';
+    x.age=row.querySelector('.edit-age')?.value||'';
+    x.birthday=row.querySelector('.edit-birthday')?.value||'';
+    x.grade=row.querySelector('.edit-grade')?.value||x.grade||'';
+    count++;
+  });
+  learners.forEach(normalizeLearner);
+  persist(); renderLearners(); renderBatchTables();
+  const st=document.getElementById('editLearnersStatus');if(st){st.textContent=count+' learner record(s) updated successfully.';st.style.color='#166534';}
+}
+function exportAllDataExcel(){
+  normalizeAllLearners();
+  if(!learners.length){alert('There are no learner records to export.');return;}
+  const headers=['Profile','LRN','Name','Sex','Age','Birthday','Grade','Section','School Year','Adviser','School Head'];
+  const gradeHeaders=[]; learningAreas.forEach(s=>[1,2,3].forEach(t=>gradeHeaders.push(s+' - Term '+t))); learningAreas.forEach(s=>gradeHeaders.push(s+' - Final'));
+  const attHeaders=[]; months.forEach(m=>{attHeaders.push(m+' - Class Days',m+' - Present',m+' - Absent');});
+  const commentHeaders=['Comment - Term 1','Comment - Term 2','Comment - Term 3'];
+  const data=[headers.concat(gradeHeaders,attHeaders,commentHeaders)];
+  learners.forEach(x=>{
+    normalizeLearner(x);
+    const row=[x.photo?'Photo saved':'',x.lrn||'',x.name||'',x.sex||'',x.age||'',x.birthday||'',x.grade||'',x.section||'',x.schoolYear||'',x.adviser||'',x.schoolHead||''];
+    learningAreas.forEach(s=>[1,2,3].forEach(t=>row.push((x.grades[s]||{})['t'+t]||'')));
+    learningAreas.forEach(s=>row.push(final(x.grades[s]||'')));
+    months.forEach(m=>{const d=(x.attendance.schoolDays||{})[m]||'';const p=(x.attendance.present||{})[m]||'';const a=(String(p).trim()!==''&&String(d).trim()!==''&&Number.isFinite(Number(d))&&Number.isFinite(Number(p)))?Math.max(0,Number(d)-Number(p)):'';row.push(d,p,a);});
+    row.push(...(x.comments||['','',''])); data.push(row);
+  });
+  if(window.XLSX){
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet(data); ws['!cols']=headers.concat(gradeHeaders,attHeaders,commentHeaders).map((h,i)=>({wch:i===2?32:Math.min(Math.max(String(h).length+2,10),24)}));
+    XLSX.utils.book_append_sheet(wb,ws,'All Learners');
+    const profileData=[['School Name','School Year','Grade','Section','Adviser','Principal / School Head','Cluster'],[cardInfo.schoolName,cardInfo.schoolYear,cardInfo.grade,cardInfo.section,cardInfo.adviser,cardInfo.principal,cardInfo.cluster]];
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(profileData),'Card Info');
+    XLSX.writeFile(wb,'SF9_All_Learners_2026.xlsx');
+  }else{
+    const csv=data.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SF9_All_Learners_2026.csv';a.click();URL.revokeObjectURL(a.href);
+  }
+}
+function installGradeKeyboardNavigation(){
+  document.addEventListener('keydown',e=>{
+    const el=e.target;
+    if(!el.matches('.batch-grade-input,.grade-input'))return;
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const inputs=[...el.closest('tbody').querySelectorAll('input.batch-grade-input,input.grade-input')];
+      if(el.classList.contains('batch-grade-input')){
+        const same=[...el.closest('tbody').querySelectorAll(`input.batch-grade-input[data-subject="${el.dataset.subject}"]`)];
+        const i=same.indexOf(el); if(i>=0&&same[i+1]){same[i+1].focus();same[i+1].select();}
+      }else{
+        const row=el.closest('tr'); const cell=el.closest('td'); const next=row?.nextElementSibling?.children[cell?.cellIndex||0]?.querySelector('input.grade-input'); if(next){next.focus();next.select();}
+      }
+    }
+  });
+}
+installGradeKeyboardNavigation();
+
 function goToAppSection(id,btn){
   const main=document.querySelector('.app.no-print .main-content');
   if(!main)return;
@@ -544,11 +675,11 @@ function printSF9(){
   }).join('');
 
   const hasPresent=months.some(m=>String((x.attendance.present||{})[m]??'').trim()!=='');
-  const attendanceRows=hasPresent ? ['schoolDays','present','absent'].map((k,i)=>{
-    const total=months.reduce((a,m)=>a+Number((x.attendance[k]||{})[m]||0),0);
-    const labels=['No. of<br>Class<br>Days','No. of Days<br>Present','No. of Days<br>Absent'];
-    return `<tr><td>${labels[i]}</td>${months.map(m=>cell((x.attendance[k]||{})[m])).join('')}<td>${total||''}</td></tr>`;
-  }).join('') : '';
+  const attendanceRows=hasPresent ? (()=>{
+    const absent={}; months.forEach(m=>{const d=Number((x.attendance.schoolDays||{})[m]);const p=Number((x.attendance.present||{})[m]);absent[m]=(String((x.attendance.present||{})[m]??'').trim()!==''&&Number.isFinite(d)&&Number.isFinite(p))?String(Math.max(0,d-p)):'';});
+    const rows=[['schoolDays','No. of<br>Class<br>Days'],['present','No. of Days<br>Present'],['absent','No. of Days<br>Absent']];
+    return rows.map(([k,label])=>{const total=months.reduce((a,m)=>a+Number((k==='absent'?absent:(x.attendance[k]||{}))[m]||0),0);return `<tr><td>${label}</td>${months.map(m=>cell((k==='absent'?absent:(x.attendance[k]||{}))[m])).join('')}<td>${total||''}</td></tr>`;}).join('');
+  })() : '';
 
   const page=`<div class="page">
     <div class="card">
@@ -723,6 +854,7 @@ initAppSectionView();
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="./config.js"></script>
 <script>
 (function(){
@@ -822,8 +954,9 @@ initAppSectionView();
   }
 
   function getLocalLearners(){
-    try { return JSON.parse(localStorage.getItem('sf9Learners2026')||'[]'); }
-    catch(e){ console.error('SF9 local learner data error',e); return []; }
+    try { const raw=localStorage.getItem('sf9Learners2026'); if(raw) return JSON.parse(raw); }
+    catch(e){ console.warn('SF9 local learner cache unavailable; using in-memory records for cloud sync.',e); }
+    return Array.isArray(window.learners)?window.learners:[];
   }
 
   function getLocalCardInfo(){
@@ -835,7 +968,7 @@ initAppSectionView();
     return {
       version: 1,
       learners: getLocalLearners(),
-      cardInfo: getLocalCardInfo(),
+      cardInfo: getLocalCardInfo() || (typeof cardInfo!=='undefined'?cardInfo:null),
       batchTerm: Number(localStorage.getItem('sf9BatchTerm')||1)
     };
   }
