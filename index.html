@@ -13,16 +13,16 @@
   body{background:#fff;margin:0}
   .no-print{display:none!important}
   .print-area{display:block}
-  @page{size:A4 landscape;margin:7mm}
-  .page{width:283mm;height:196mm;margin:0;padding:0;page-break-after:always;box-shadow:none}
+  @page{size:A4 landscape;margin:7.5mm 12.7mm}
+  .page{width:271.6mm;height:195mm;margin:0;padding:0;page-break-after:always;box-shadow:none}
   .page:last-child{page-break-after:auto}
 }
 .page{
-  width:283mm;height:196mm;background:#fff;overflow:hidden;
+  width:271.6mm;height:195mm;background:#fff;overflow:hidden;
   font-family:"Bookman Old Style","Bookman",serif;color:#111;
   font-size:9pt;line-height:1.12;position:relative;
 }
-.card{position:absolute;left:2.5mm;right:2.5mm;top:0;bottom:0}
+.card{position:absolute;left:1.5mm;right:1.5mm;top:0;bottom:0}
 .top{display:none}.header-column{width:100%}.header{text-align:center;font-family:"Bookman Old Style","Bookman",serif;font-size:9pt}
 .dep-logo{width:24mm;height:24mm;object-fit:contain}
 .header{text-align:center;font-family:"Bookman Old Style","Bookman",serif;font-size:9pt}
@@ -48,13 +48,16 @@
 .learning td:first-child{font-weight:700}
 .learning .sub{font-style:italic;font-weight:400;text-align:center}
 .learning .ga{text-align:right;font-weight:700;font-style:italic}
+.report-table.learning{flex:1 1 0;min-height:0;height:0}
+.report-table.learning tbody tr{height:100%}
+.report-table.learning tbody td,.report-table.learning tbody th{height:100%}
 .center{text-align:center!important}.auto-grade{display:inline-block;min-width:22px;font-weight:700}
 .descriptors{margin-top:3mm}
 .descriptor-grid{display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;font-size:9pt;line-height:1.08}
 .descriptor-heading{text-align:left;margin-top:auto;margin-bottom:1.5mm}
 .descriptor-grid b{display:block;margin-bottom:.5mm}
 .att-heading{margin-bottom:2.2mm}
-.attendance{font-size:8pt;width:98%;margin-right:0}.attendance th,.attendance td{font-size:8pt}
+.attendance{font-size:9pt;width:98%;margin-right:0}.attendance th,.attendance td{font-size:9pt}
 .attendance th,.attendance td{height:5.8mm;padding:.35mm;text-align:center}
 .attendance th:first-child,.attendance td:first-child{width:13%}
 .attendance th:not(:first-child),.attendance td:not(:first-child){width:6.5%}
@@ -748,12 +751,11 @@ function printSF9(){
     return `<tr><td class="${sub?'sub':''}">${esc(subject)}</td>${cell(g.t1)}${cell(g.t2)}${cell(g.t3)}${cell(final(g))}${cell(remark(final(g)))}</tr>`;
   }).join('');
 
-  const hasPresent=months.some(m=>String((x.attendance.present||{})[m]??'').trim()!=='');
-  const attendanceRows=hasPresent ? (()=>{
+  const attendanceRows=(()=>{
     const absent={}; months.forEach(m=>{const d=Number((x.attendance.schoolDays||{})[m]);const p=Number((x.attendance.present||{})[m]);absent[m]=(String((x.attendance.present||{})[m]??'').trim()!==''&&Number.isFinite(d)&&Number.isFinite(p))?String(Math.max(0,d-p)):'';});
     const rows=[['schoolDays','No. of<br>Class<br>Days'],['present','No. of Days<br>Present'],['absent','No. of Days<br>Absent']];
     return rows.map(([k,label])=>{const total=months.reduce((a,m)=>a+Number((k==='absent'?absent:(x.attendance[k]||{}))[m]||0),0);return `<tr><td>${label}</td>${months.map(m=>cell((k==='absent'?absent:(x.attendance[k]||{}))[m])).join('')}<td>${total||''}</td></tr>`;}).join('');
-  })() : '';
+  })();
 
   const page=`<div class="page">
     <div class="card">
@@ -891,11 +893,11 @@ function printSF9(){
     popup.document.open();
     popup.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>SF9 - ${esc(x.name||'Learner')}</title>${styles}<style>
       html,body{margin:0;padding:0;background:#fff!important;}
-      body{font-family:"Bookman Old Style",serif;}
-      .page{display:block!important;margin:0!important;padding:0!important;width:283mm!important;height:196mm!important;overflow:hidden!important;}
+      body{font-family:"Bookman Old Style","Bookman",serif;font-size:9pt;}
+      .page{display:block!important;margin:0!important;padding:0!important;width:271.6mm!important;height:195mm!important;overflow:hidden!important;}
       .card{margin:0!important;box-shadow:none!important;}
       .header-logo{width:22mm!important;height:22mm!important;flex-basis:22mm!important;object-fit:contain!important;}
-      @page{size:A4 landscape;margin:7mm;}
+      @page{size:A4 landscape;margin:7.5mm 12.7mm;}
     </style></head><body>${page}
 
 </body></html>`);
