@@ -1024,6 +1024,7 @@ initAppSectionView();
   let signedInUser = null;
   let syncing = false;
   let saveTimer = null;
+  let restoredOnce = false; /* Only ever pull cloud data into this tab once per page load — after that, sync is local -> cloud only, so an in-progress edit on this device can never be silently overwritten by a stale cloud snapshot (e.g. from Supabase's periodic TOKEN_REFRESHED events). */
 
   function cfg(){
     const c=window.SF9_CONFIG||{};
@@ -1127,11 +1128,13 @@ initAppSectionView();
     }
   }
 
-  async function restoreAfterLogin(){
+  async function restoreAfterLogin(force){
     if(!client || !signedInUser) return;
+    if(restoredOnce && !force) return; /* already pulled cloud data this page load — never overwrite in-progress local edits with a later, possibly-stale cloud snapshot */
     try{
       const local=getLocalState();
       const cloud=await readCloud();
+      restoredOnce = true; /* mark done only once the cloud read actually succeeds, so a transient failure can still retry later */
 
       if(cloud && hasUsefulState(cloud)){
         /* Cloud is the recovery source. Merge only learners that exist locally
@@ -1229,7 +1232,7 @@ initAppSectionView();
   }else setTimeout(init,0);
 
   window.sf9Cloud={
-    restore:restoreAfterLogin,
+    restore:()=>restoreAfterLogin(true),
     save:()=>writeCloud(getLocalState())
   };
 })();
